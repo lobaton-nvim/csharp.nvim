@@ -7,8 +7,8 @@ local M = {}
 function M.get_full_namespace(directory)
 	local current_dir = utils.get_current_working_directory()
 
-	-- Buscar .csproj recursivamente hacia arriba
-	local csproj_file = vim.fn.findfile("*.csproj", current_dir .. ";")
+	-- Buscar .csproj recursivamente hacia arriba desde el directorio actual
+	local csproj_file = M.find_csproj_upwards(current_dir)
 
 	if csproj_file ~= "" then
 		-- Usar el nombre del archivo .csproj como namespace base
@@ -18,14 +18,15 @@ function M.get_full_namespace(directory)
 		-- Calcular ruta relativa desde el directorio del proyecto
 		local relative_path = string.gsub(current_dir, "^" .. vim.pesc(project_dir), "")
 		relative_path = string.gsub(relative_path, "^/", "")
+		relative_path = string.gsub(relative_path, "/$", "")
 
 		local namespace_parts = {}
 		table.insert(namespace_parts, base_namespace)
 
 		-- Agregar partes del path relativo
-		if relative_path ~= "" then
+		if relative_path ~= "" and relative_path ~= "." then
 			for part in string.gmatch(relative_path, "[^/]+") do
-				if part ~= "" and not part:match("%.cs$") then
+				if part ~= "" and not part:match("%.cs$") and part ~= "." then
 					table.insert(namespace_parts, part)
 				end
 			end
@@ -50,6 +51,11 @@ function M.get_full_namespace(directory)
 			return fallback_namespace
 		end
 	end
+end
+
+function M.find_csproj_upwards(start_dir)
+	-- Buscar .csproj recursivamente hacia arriba
+	return vim.fn.findfile("*.csproj", start_dir .. ";")
 end
 
 function M.get_default_usings()
