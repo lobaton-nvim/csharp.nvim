@@ -15,7 +15,7 @@ local config = {
 function M.setup(user_config)
 	config = vim.tbl_deep_extend("force", config, user_config or {})
 
-	-- Commands for file creation (available immediately)
+	-- File creation commands
 	vim.api.nvim_create_user_command("CSharpNewClass", function(opts)
 		local name = opts.args
 		if name == "" then
@@ -39,6 +39,27 @@ function M.setup(user_config)
 		end
 		require("csharp.file_creator").create_enum(name)
 	end, { nargs = "?" })
+
+	-- Code generation commands
+	vim.api.nvim_create_user_command("CSharpGenConstructor", function()
+		require("csharp.code_generator").generate_constructor_from_properties()
+	end, {})
+
+	vim.api.nvim_create_user_command("CSharpGenBodyConstructor", function()
+		require("csharp.code_generator").generate_body_expression_constructor()
+	end, {})
+
+	vim.api.nvim_create_user_command("CSharpAddUsing", function()
+		require("csharp.code_generator").add_using()
+	end, {})
+
+	vim.api.nvim_create_user_command("CSharpGenOverrideEquals", function()
+		require("csharp.code_generator").generate_override_equals()
+	end, {})
+
+	vim.api.nvim_create_user_command("CSharpGenToString", function()
+		require("csharp.code_generator").generate_to_string()
+	end, {})
 end
 
 function M.get_config()
