@@ -7,21 +7,12 @@ local M = {}
 function M.get_full_namespace(directory)
 	local current_dir = utils.get_current_working_directory()
 
-	-- Debug: print current directory
-	-- print("Current working directory: " .. current_dir)
-
-	-- Buscar .csproj recursivamente hacia arriba desde el directorio de trabajo
-	local csproj_file = vim.fn.findfile("*.csproj", current_dir .. ";")
-
-	-- Debug: print found csproj
-	-- print("Found csproj: " .. (csproj_file or "nil"))
+	-- Buscar .csproj de forma más robusta
+	local csproj_file = M.find_csproj_robust(current_dir)
 
 	if csproj_file and csproj_file ~= "" then
 		-- Usar el nombre del archivo .csproj como namespace base
 		local base_namespace = vim.fn.fnamemodify(csproj_file, ":t:r")
-
-		-- Debug: print base namespace
-		-- print("Base namespace: " .. base_namespace)
 
 		-- Construir namespace con el directorio especificado
 		local namespace_parts = { base_namespace }
@@ -33,18 +24,48 @@ function M.get_full_namespace(directory)
 			end
 		end
 
-		local result = table.concat(namespace_parts, ".")
-		-- print("Final namespace: " .. result)
-		return result
+		return table.concat(namespace_parts, ".")
 	else
 		-- Fallback cuando no hay .csproj
-		print("No .csproj found, using fallback namespace")
 		if directory then
 			return "MyProject." .. directory:gsub("[/\\]", ".")
 		else
 			return "MyProject"
 		end
 	end
+end
+
+function M.find_csproj_robust(start_dir)
+	-- Método más robusto: buscar recursivamente hacia arriba
+	local current = start_dir
+
+	-- Limpiar el path
+	current = string.gsub(current, "\\+$", "")
+	current = string.gsub(current, "/+$", "")
+
+	-- Buscar en el directorio actual y hacia arriba
+	while current and current ~= "" and current ~= "/" and current ~= "." do
+		-- Intentar leer el directorio
+		local ok, files = pcall(vim.fn.readdir, current)
+		if ok and files then
+			for _, file in ipairs(files) do
+				if file:match("%.csproj$") then
+					return current .. "/" .. file
+				end
+			end
+		end
+
+		-- Subir un nivel
+		local parent = vim.fn.fnamemodify(current, ":h")
+		if parent == current or parent == "" then
+			break
+		end
+		current = parent
+	end
+
+	-- Último intento: usar findfile
+	local fallback = vim.fn.findfile("*.csproj", start_dir .. ";")
+	return fallback
 end
 
 function M.get_default_usings()

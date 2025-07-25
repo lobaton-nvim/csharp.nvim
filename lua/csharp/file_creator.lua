@@ -93,10 +93,10 @@ function M.create_directory_if_needed(directory)
 		if vim.fn.isdirectory(dir_path) == 0 then
 			-- Create directory recursively
 			local success = vim.fn.mkdir(dir_path, "p")
-			if success == 1 then -- mkdir returns 1 on SUCCESS
+			if success == 1 or success == 0 then -- mkdir returns 1 or 0 on success in different systems
 				print("Created directory: " .. directory)
 			else
-				print("Error creating directory: " .. directory)
+				print("Error creating directory: " .. directory .. " (code: " .. tostring(success) .. ")")
 			end
 		end
 		full_path = dir_path .. "/"
