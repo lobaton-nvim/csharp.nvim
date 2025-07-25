@@ -1,7 +1,6 @@
 -- lua/csharp/file_creator.lua
 
 local templates = require("csharp.templates")
-local utils = require("csharp.utils")
 
 local M = {}
 
@@ -21,7 +20,7 @@ function M.create_class(name)
 	filename = M.to_pascal_case(filename)
 
 	local full_path = M.create_directory_if_needed(directory)
-	local content = templates.class_template(filename)
+	local content = templates.class_template(filename, directory)
 	local file_path = full_path .. filename .. ".cs"
 
 	M.create_file(file_path, content)
@@ -45,7 +44,7 @@ function M.create_interface(name)
 	end
 
 	local full_path = M.create_directory_if_needed(directory)
-	local content = templates.interface_template(filename)
+	local content = templates.interface_template(filename, directory)
 	local file_path = full_path .. filename .. ".cs"
 
 	M.create_file(file_path, content)
@@ -67,7 +66,7 @@ function M.create_enum(name)
 	filename = M.to_pascal_case(filename)
 
 	local full_path = M.create_directory_if_needed(directory)
-	local content = templates.enum_template(filename)
+	local content = templates.enum_template(filename, directory)
 	local file_path = full_path .. filename .. ".cs"
 
 	M.create_file(file_path, content)

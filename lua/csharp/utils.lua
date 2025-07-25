@@ -29,12 +29,14 @@ function M.get_namespace_from_csproj()
 end
 
 function M.get_relative_namespace(current_path, base_path, directory)
-	local rel_path = string.gsub(current_path, base_path .. "/", "")
+	-- Get the relative path from base_path to current_path
+	local rel_path = string.gsub(current_path, "^" .. vim.pesc(base_path) .. "/?", "")
+
 	local namespace_parts = {}
 
-	-- Add relative path parts
+	-- Add parts from relative path
 	for part in string.gmatch(rel_path, "[^/]+") do
-		if part ~= "" and not part:match("%.cs$") then
+		if part ~= "" and not part:match("%.cs$") and part ~= "." then
 			table.insert(namespace_parts, part)
 		end
 	end

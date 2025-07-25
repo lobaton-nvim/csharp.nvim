@@ -15,15 +15,17 @@ function M.get_full_namespace(directory)
 
 		if relative_ns ~= "" then
 			return base_namespace .. "." .. relative_ns
+		else
+			return base_namespace
+		end
+	else
+		-- If no .csproj found, use fallback with directory structure
+		if directory then
+			return base_namespace .. "." .. directory:gsub("/", ".")
+		else
+			return base_namespace
 		end
 	end
-
-	-- Fallback namespace with directory structure
-	if directory then
-		return base_namespace .. "." .. directory:gsub("/", ".")
-	end
-
-	return base_namespace
 end
 
 function M.get_default_usings()
