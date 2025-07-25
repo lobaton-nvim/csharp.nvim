@@ -131,16 +131,31 @@ end
 function M.get_public_properties(lines)
 	local properties = {}
 	for i, line in ipairs(lines) do
-		-- Match public auto-properties: public type Name { get; set; }
-		local access, type, name = line:match("%s*(%w+)%s+(%w+)%s+(%w+)%s*{[^}]*};")
-		if access and name and access == "public" then
-			table.insert(properties, {
-				line = line,
-				index = i,
-				access = access,
-				type = type,
-				name = name,
-			})
+		-- Patrón más robusto para propiedades auto-implementadas de C#
+		-- Soporta: public string Name { get; set; }
+		--          public int Age { get; set; }
+		--          public string Email { get; }
+		--          public string Password { set; }
+
+		-- Patrón principal: public type Name { ... }
+		local type, name = line:match("^%s*public%s+(%w+)%s+(%w+)%s*{.*};?")
+
+		if not type or not name then
+			-- Patrón alternativo sin punto y coma al final
+			type, name = line:match("^%s*public%s+(%w+)%s+(%w+)%s*{.*}$")
+		end
+
+		if type and name then
+			-- Verificar que contenga al menos get o set
+			if line:match("{.*[gs]et.*}") or line:match("{.*get.*}") or line:match("{.*set.*}") then
+				table.insert(properties, {
+					line = line,
+					index = i,
+					access = "public",
+					type = type,
+					name = name,
+				})
+			end
 		end
 	end
 	return properties
@@ -227,11 +242,9 @@ function M.build_regular_constructor(class_name, properties)
 	local assign_list = {}
 
 	for _, prop in ipairs(properties) do
-		table.insert(param_list, "        " .. prop.type .. " " .. prop.name:sub(1, 1):lower() .. prop.name:sub(2))
-		table.insert(
-			assign_list,
-			"            " .. prop.name .. " = " .. prop.name:sub(1, 1):lower() .. prop.name:sub(2) .. ";"
-		)
+		local param_name = prop.name:sub(1, 1):lower() .. prop.name:sub(2)
+		table.insert(param_list, "        " .. prop.type .. " " .. param_name)
+		table.insert(assign_list, "            " .. prop.name .. " = " .. param_name .. ";")
 	end
 
 	local params = table.concat(param_list, ",\n")
@@ -251,8 +264,9 @@ function M.build_body_expression_constructor(class_name, properties)
 	local assign_list = {}
 
 	for _, prop in ipairs(properties) do
-		table.insert(param_list, prop.type .. " " .. prop.name:sub(1, 1):lower() .. prop.name:sub(2))
-		table.insert(assign_list, prop.name .. " = " .. prop.name:sub(1, 1):lower() .. prop.name:sub(2))
+		local param_name = prop.name:sub(1, 1):lower() .. prop.name:sub(2)
+		table.insert(param_list, prop.type .. " " .. param_name)
+		table.insert(assign_list, prop.name .. " = " .. param_name)
 	end
 
 	local params = table.concat(param_list, ", ")
