@@ -5,25 +5,49 @@ local utils = require("csharp.utils")
 local M = {}
 
 function M.get_full_namespace(directory)
-	local base_namespace = utils.get_namespace_from_csproj()
 	local current_dir = utils.get_current_working_directory()
+
+	-- Buscar .csproj recursivamente hacia arriba
 	local csproj_file = vim.fn.findfile("*.csproj", current_dir .. ";")
 
 	if csproj_file ~= "" then
+		-- Usar el nombre del archivo .csproj como namespace base
+		local base_namespace = vim.fn.fnamemodify(csproj_file, ":t:r") -- nombre sin extensión
 		local project_dir = vim.fn.fnamemodify(csproj_file, ":p:h")
-		local relative_ns = utils.get_relative_namespace(current_dir, project_dir, directory)
 
-		if relative_ns ~= "" then
-			return base_namespace .. "." .. relative_ns
-		else
-			return base_namespace
+		-- Calcular ruta relativa desde el directorio del proyecto
+		local relative_path = string.gsub(current_dir, "^" .. vim.pesc(project_dir), "")
+		relative_path = string.gsub(relative_path, "^/", "")
+
+		local namespace_parts = {}
+		table.insert(namespace_parts, base_namespace)
+
+		-- Agregar partes del path relativo
+		if relative_path ~= "" then
+			for part in string.gmatch(relative_path, "[^/]+") do
+				if part ~= "" and not part:match("%.cs$") then
+					table.insert(namespace_parts, part)
+				end
+			end
 		end
-	else
-		-- If no .csproj found, use fallback with directory structure
+
+		-- Agregar directorio especificado
 		if directory then
-			return base_namespace .. "." .. directory:gsub("/", ".")
+			for part in string.gmatch(directory, "[^/]+") do
+				if part ~= "" then
+					table.insert(namespace_parts, part)
+				end
+			end
+		end
+
+		return table.concat(namespace_parts, ".")
+	else
+		-- Fallback cuando no hay .csproj
+		local fallback_namespace = "MyProject"
+		if directory then
+			return fallback_namespace .. "." .. directory:gsub("/", ".")
 		else
-			return base_namespace
+			return fallback_namespace
 		end
 	end
 end
