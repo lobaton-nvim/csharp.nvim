@@ -7,55 +7,32 @@ local M = {}
 function M.get_full_namespace(directory)
 	local current_dir = utils.get_current_working_directory()
 
-	-- Buscar .csproj recursivamente hacia arriba desde el directorio actual
-	local csproj_file = M.find_csproj_upwards(current_dir)
+	-- Buscar .csproj recursivamente hacia arriba desde el directorio de trabajo
+	local csproj_file = vim.fn.findfile("*.csproj", current_dir .. ";")
 
-	if csproj_file ~= "" then
+	if csproj_file and csproj_file ~= "" then
 		-- Usar el nombre del archivo .csproj como namespace base
-		local base_namespace = vim.fn.fnamemodify(csproj_file, ":t:r") -- nombre sin extensión
-		local project_dir = vim.fn.fnamemodify(csproj_file, ":p:h")
+		local base_namespace = vim.fn.fnamemodify(csproj_file, ":t:r")
 
-		-- Calcular ruta relativa desde el directorio del proyecto
-		local relative_path = string.gsub(current_dir, "^" .. vim.pesc(project_dir), "")
-		relative_path = string.gsub(relative_path, "^/", "")
-		relative_path = string.gsub(relative_path, "/$", "")
+		-- Construir namespace con el directorio especificado
+		local namespace_parts = { base_namespace }
 
-		local namespace_parts = {}
-		table.insert(namespace_parts, base_namespace)
-
-		-- Agregar partes del path relativo
-		if relative_path ~= "" and relative_path ~= "." then
-			for part in string.gmatch(relative_path, "[^/]+") do
-				if part ~= "" and not part:match("%.cs$") and part ~= "." then
-					table.insert(namespace_parts, part)
-				end
-			end
-		end
-
-		-- Agregar directorio especificado
+		-- Añadir directorio del comando si existe
 		if directory then
-			for part in string.gmatch(directory, "[^/]+") do
-				if part ~= "" then
-					table.insert(namespace_parts, part)
-				end
+			for part in string.gmatch(directory, "[^/\\]+") do
+				table.insert(namespace_parts, part)
 			end
 		end
 
 		return table.concat(namespace_parts, ".")
 	else
 		-- Fallback cuando no hay .csproj
-		local fallback_namespace = "MyProject"
 		if directory then
-			return fallback_namespace .. "." .. directory:gsub("/", ".")
+			return "MyProject." .. directory:gsub("[/\\]", ".")
 		else
-			return fallback_namespace
+			return "MyProject"
 		end
 	end
-end
-
-function M.find_csproj_upwards(start_dir)
-	-- Buscar .csproj recursivamente hacia arriba
-	return vim.fn.findfile("*.csproj", start_dir .. ";")
 end
 
 function M.get_default_usings()

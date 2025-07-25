@@ -3,11 +3,8 @@
 local M = {}
 
 function M.get_current_working_directory()
-	local current_dir = vim.fn.expand("%:p:h")
-	if current_dir == "" or current_dir == "." then
-		return vim.fn.getcwd()
-	end
-	return current_dir
+	-- Siempre usar el directorio de trabajo actual, no el del buffer
+	return vim.fn.getcwd()
 end
 
 function M.get_current_buffer_lines()

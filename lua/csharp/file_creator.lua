@@ -1,6 +1,7 @@
 -- lua/csharp/file_creator.lua
 
 local templates = require("csharp.templates")
+local utils = require("csharp.utils")
 
 local M = {}
 
@@ -83,11 +84,7 @@ function M.parse_name(name)
 end
 
 function M.create_directory_if_needed(directory)
-	local current_path = vim.fn.expand("%:p:h")
-	if current_path == "" or current_path == "." then
-		current_path = vim.fn.getcwd()
-	end
-
+	local current_path = utils.get_current_working_directory()
 	local full_path = current_path .. "/"
 
 	if directory then
