@@ -4,6 +4,10 @@ local M = {}
 
 function M.get_namespace_from_csproj()
 	local current_dir = vim.fn.expand("%:p:h")
+	if current_dir == "" or current_dir == "." then
+		current_dir = vim.fn.getcwd()
+	end
+
 	local csproj_file = vim.fn.findfile("*.csproj", current_dir .. ";")
 
 	if csproj_file ~= "" then
@@ -24,17 +28,35 @@ function M.get_namespace_from_csproj()
 	return "MyNamespace"
 end
 
-function M.get_relative_namespace(current_path, base_path)
+function M.get_relative_namespace(current_path, base_path, directory)
 	local rel_path = string.gsub(current_path, base_path .. "/", "")
 	local namespace_parts = {}
 
+	-- Add relative path parts
 	for part in string.gmatch(rel_path, "[^/]+") do
 		if part ~= "" and not part:match("%.cs$") then
 			table.insert(namespace_parts, part)
 		end
 	end
 
+	-- Add directory parts if provided
+	if directory then
+		for part in string.gmatch(directory, "[^/]+") do
+			if part ~= "" then
+				table.insert(namespace_parts, part)
+			end
+		end
+	end
+
 	return table.concat(namespace_parts, ".")
+end
+
+function M.get_current_working_directory()
+	local current_dir = vim.fn.expand("%:p:h")
+	if current_dir == "" or current_dir == "." then
+		return vim.fn.getcwd()
+	end
+	return current_dir
 end
 
 return M

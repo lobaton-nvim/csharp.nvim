@@ -19,7 +19,7 @@ function M.setup(user_config)
 	vim.api.nvim_create_user_command("CSharpNewClass", function(opts)
 		local name = opts.args
 		if name == "" then
-			name = vim.fn.input("Class name: ")
+			name = vim.fn.input("Class name (optional: directory.class): ")
 		end
 		require("csharp.file_creator").create_class(name)
 	end, { nargs = "?" })
@@ -27,7 +27,7 @@ function M.setup(user_config)
 	vim.api.nvim_create_user_command("CSharpNewInterface", function(opts)
 		local name = opts.args
 		if name == "" then
-			name = vim.fn.input("Interface name: ")
+			name = vim.fn.input("Interface name (optional: directory.IInterface): ")
 		end
 		require("csharp.file_creator").create_interface(name)
 	end, { nargs = "?" })
@@ -35,7 +35,7 @@ function M.setup(user_config)
 	vim.api.nvim_create_user_command("CSharpNewEnum", function(opts)
 		local name = opts.args
 		if name == "" then
-			name = vim.fn.input("Enum name: ")
+			name = vim.fn.input("Enum name (optional: directory.Enum): ")
 		end
 		require("csharp.file_creator").create_enum(name)
 	end, { nargs = "?" })

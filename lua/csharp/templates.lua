@@ -4,18 +4,23 @@ local utils = require("csharp.utils")
 
 local M = {}
 
-function M.get_full_namespace()
+function M.get_full_namespace(directory)
 	local base_namespace = utils.get_namespace_from_csproj()
-	local current_file = vim.fn.expand("%:p")
-	local csproj_file = vim.fn.findfile("*.csproj", vim.fn.expand("%:p:h") .. ";")
+	local current_dir = utils.get_current_working_directory()
+	local csproj_file = vim.fn.findfile("*.csproj", current_dir .. ";")
 
 	if csproj_file ~= "" then
 		local project_dir = vim.fn.fnamemodify(csproj_file, ":p:h")
-		local relative_ns = utils.get_relative_namespace(vim.fn.fnamemodify(current_file, ":p:h"), project_dir)
+		local relative_ns = utils.get_relative_namespace(current_dir, project_dir, directory)
 
 		if relative_ns ~= "" then
 			return base_namespace .. "." .. relative_ns
 		end
+	end
+
+	-- Fallback namespace with directory structure
+	if directory then
+		return base_namespace .. "." .. directory:gsub("/", ".")
 	end
 
 	return base_namespace
@@ -32,8 +37,8 @@ function M.get_default_usings()
 		}
 end
 
-function M.class_template(name)
-	local namespace = M.get_full_namespace()
+function M.class_template(name, directory)
+	local namespace = M.get_full_namespace(directory)
 	local usings = M.get_default_usings()
 
 	local lines = {}
@@ -52,8 +57,8 @@ function M.class_template(name)
 	return lines
 end
 
-function M.interface_template(name)
-	local namespace = M.get_full_namespace()
+function M.interface_template(name, directory)
+	local namespace = M.get_full_namespace(directory)
 	local usings = M.get_default_usings()
 
 	local lines = {}
@@ -72,8 +77,8 @@ function M.interface_template(name)
 	return lines
 end
 
-function M.enum_template(name)
-	local namespace = M.get_full_namespace()
+function M.enum_template(name, directory)
+	local namespace = M.get_full_namespace(directory)
 	local usings = M.get_default_usings()
 
 	local lines = {}
