@@ -10,12 +10,21 @@ local config = {
 		"System.Linq",
 		"System.Threading.Tasks",
 	},
+	keymaps = {
+		enabled = true,
+		prefix = "<leader>c",
+		mappings = {
+			new_class = "c",
+			new_interface = "i",
+			new_enum = "e",
+		},
+	},
 }
 
 function M.setup(user_config)
 	config = vim.tbl_deep_extend("force", config, user_config or {})
 
-	-- File creation commands
+	-- Solo comandos para creación de archivos
 	vim.api.nvim_create_user_command("CSharpNewClass", function(opts)
 		local name = opts.args
 		if name == "" then
@@ -40,26 +49,25 @@ function M.setup(user_config)
 		require("csharp.file_creator").create_enum(name)
 	end, { nargs = "?" })
 
-	-- Code generation commands
-	vim.api.nvim_create_user_command("CSharpGenConstructor", function()
-		require("csharp.code_generator").generate_constructor_from_properties()
-	end, {})
+	-- Configurar atajos de teclado si están habilitados
+	if config.keymaps.enabled then
+		M.setup_keymaps()
+	end
+end
 
-	vim.api.nvim_create_user_command("CSharpGenBodyConstructor", function()
-		require("csharp.code_generator").generate_body_expression_constructor()
-	end, {})
+function M.setup_keymaps()
+	local prefix = config.keymaps.prefix
+	local mappings = config.keymaps.mappings
 
-	vim.api.nvim_create_user_command("CSharpAddUsing", function()
-		require("csharp.code_generator").add_using()
-	end, {})
-
-	vim.api.nvim_create_user_command("CSharpGenOverrideEquals", function()
-		require("csharp.code_generator").generate_override_equals()
-	end, {})
-
-	vim.api.nvim_create_user_command("CSharpGenToString", function()
-		require("csharp.code_generator").generate_to_string()
-	end, {})
+	vim.keymap.set("n", prefix .. mappings.new_class, ":CSharpNewClass<CR>", {
+		desc = "Create C# Class",
+	})
+	vim.keymap.set("n", prefix .. mappings.new_interface, ":CSharpNewInterface<CR>", {
+		desc = "Create C# Interface",
+	})
+	vim.keymap.set("n", prefix .. mappings.new_enum, ":CSharpNewEnum<CR>", {
+		desc = "Create C# Enum",
+	})
 end
 
 function M.get_config()
