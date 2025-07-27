@@ -68,25 +68,10 @@ function M.find_csproj_robust(start_dir)
 	return fallback
 end
 
-function M.get_default_usings()
-	local config = require("csharp").get_config()
-	return config.default_usings
-		or {
-			"System",
-			"System.Collections.Generic",
-			"System.Linq",
-			"System.Threading.Tasks",
-		}
-end
-
 function M.class_template(name, directory)
 	local namespace = M.get_full_namespace(directory)
-	local usings = M.get_default_usings()
 
 	local lines = {}
-	for _, using in ipairs(usings) do
-		table.insert(lines, "using " .. using .. ";")
-	end
 	table.insert(lines, "")
 	table.insert(lines, "namespace " .. namespace)
 	table.insert(lines, "{")
@@ -101,12 +86,8 @@ end
 
 function M.interface_template(name, directory)
 	local namespace = M.get_full_namespace(directory)
-	local usings = M.get_default_usings()
 
 	local lines = {}
-	for _, using in ipairs(usings) do
-		table.insert(lines, "using " .. using .. ";")
-	end
 	table.insert(lines, "")
 	table.insert(lines, "namespace " .. namespace)
 	table.insert(lines, "{")
@@ -121,12 +102,8 @@ end
 
 function M.enum_template(name, directory)
 	local namespace = M.get_full_namespace(directory)
-	local usings = M.get_default_usings()
 
 	local lines = {}
-	for _, using in ipairs(usings) do
-		table.insert(lines, "using " .. using .. ";")
-	end
 	table.insert(lines, "")
 	table.insert(lines, "namespace " .. namespace)
 	table.insert(lines, "{")

@@ -4,12 +4,6 @@ local M = {}
 
 local config = {
 	auto_namespace = true,
-	default_usings = {
-		"System",
-		"System.Collections.Generic",
-		"System.Linq",
-		"System.Threading.Tasks",
-	},
 	keymaps = {
 		enabled = true,
 		prefix = "<leader>c",
